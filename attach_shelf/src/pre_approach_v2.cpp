@@ -66,15 +66,15 @@ private:
 
         if (!is_path_clear) {
             mode_ = "rotating";
-            initial_angle_ = current_angle_; // Set baseline for the relative turn
-            RCLCPP_INFO(this->get_logger(), "Obstacle detected. Starting rotation from: %.2f deg", initial_angle_);
+            initial_angle_ = current_angle_; //  baseline for the relative turn
+            RCLCPP_INFO(this->get_logger(), "Obstacle detected at: %.2f. Starting rotation from: %.2f deg", forward_dist, initial_angle_);
         }
     }
   }
 
   void timer_callback() {
     auto message = geometry_msgs::msg::Twist();
-    double speed = 0.2;
+    double speed = 0.15;
 
     if (mode_ == "forward") {
         message.linear.x = 0.5; 
@@ -102,7 +102,7 @@ private:
             RCLCPP_INFO(this->get_logger(), "final_approach is false. Shutting down...");
             rclcpp::shutdown();
         } else {
-            // Transition to a state that only executes ONCE
+            // only executes ONCE
             mode_ = "requesting_service";
             this->handle_service_req();
         }
@@ -110,6 +110,7 @@ private:
   }
 
   void handle_service_req() {
+
     if (!client_->wait_for_service(std::chrono::seconds(1))) {
       RCLCPP_ERROR(this->get_logger(), "Service /approach_shelf not available. Shutting down.");
       rclcpp::shutdown();
