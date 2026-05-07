@@ -8,7 +8,7 @@ from ament_index_python.packages import get_package_share_directory
 def generate_launch_description():
     # Declare  launch arguments
     obstacle_arg = DeclareLaunchArgument('obstacle', default_value='0.4')
-    degrees_arg = DeclareLaunchArgument('degrees', default_value='-90.0')
+    degrees_arg = DeclareLaunchArgument('degrees', default_value='-90')
     final_approach_arg = DeclareLaunchArgument('final_approach', default_value='true')
 
     pkg_dir = get_package_share_directory('attach_shelf')

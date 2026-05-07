@@ -12,11 +12,12 @@ using namespace std::chrono_literals;
 class PreApproach : public rclcpp::Node {
 public:
   PreApproach() : Node("pre_approach_node"), current_angle_(0.0), initial_angle_(0.0) {
+
     this->declare_parameter<double>("obstacle", 0.0);
-    this->declare_parameter<double>("degrees", 0.0);
+    this->declare_parameter<int>("degrees", 0);
     
     obstacle_ = this->get_parameter("obstacle").as_double();
-    degrees_ = this->get_parameter("degrees").as_double();
+    degrees_ = this->get_parameter("degrees").as_int();
 
     publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
     
@@ -47,7 +48,6 @@ private:
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
 
-    // Convert radians to degrees
     current_angle_ = yaw * (180.0 / M_PI);
   }
 
@@ -60,22 +60,21 @@ private:
 
         if (!is_path_clear) {
             mode_ = "rotating";
-            initial_angle_ = current_angle_; // Set baseline for the relative turn
-            RCLCPP_INFO(this->get_logger(), "Obstacle detected. Starting rotation from: %.2f deg", initial_angle_);
+            initial_angle_ = current_angle_;
+            RCLCPP_INFO(this->get_logger(), "Obstacle detected. Rotating: %d degrees", degrees_);
         }
     }
   }
 
   void timer_callback() {
     auto message = geometry_msgs::msg::Twist();
-    double speed = 0.2; // rad/s for rotation
+    double speed = 0.05; 
 
     if (mode_ == "forward") {
         message.linear.x = 0.5; 
         message.angular.z = 0.0;
     } 
     else if (mode_ == "rotating") {
-        // Calculate change in angles
         double turned_so_far = std::abs(current_angle_ - initial_angle_);
 
         if (turned_so_far < std::abs(degrees_)) {
@@ -90,7 +89,7 @@ private:
         message.angular.z = 0.0;
         publisher_->publish(message);
         
-        RCLCPP_INFO(this->get_logger(), "Rotation complete.");
+        RCLCPP_INFO(this->get_logger(), "Rotation complete. Final Angle: %.2f degrees", current_angle_);
         rclcpp::shutdown(); 
         return;
     }
@@ -100,7 +99,7 @@ private:
 
   std::string mode_ = "forward";
   double obstacle_;
-  double degrees_;
+  int degrees_; 
   double current_angle_;
   double initial_angle_;
   
